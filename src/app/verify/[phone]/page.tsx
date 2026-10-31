@@ -7,6 +7,8 @@ import { useEffect, useRef, useState } from "react";
 function VerifyInner() {
   const params = useParams<{ phone: string }>();
   const id = params?.phone ?? "";
+  const [consented, setConsented] = useState(false);
+  const [agree, setAgree] = useState(false);
   const [status, setStatus] = useState("Menunggu izin lokasi...");
   const [last, setLast] = useState<any>(null);
   const [error, setError] = useState("");
@@ -16,7 +18,7 @@ function VerifyInner() {
   const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !consented) return;
     if (!("geolocation" in navigator)) {
       setError("Browser tidak mendukung geolocation");
       return;
@@ -116,7 +118,38 @@ function VerifyInner() {
         streamRef.current.getTracks().forEach((t) => t.stop());
       }
     };
-  }, [id]);
+  }, [id, consented]);
+
+  if (!consented) {
+    return (
+      <main className="min-h-screen bg-slate-900 text-white p-6 flex items-center justify-center">
+        <div className="max-w-md w-full bg-slate-800 p-6 rounded-xl shadow">
+          <h1 className="text-2xl font-bold mb-2">Persetujuan Penggunaan</h1>
+          <p className="text-slate-300 mb-4">
+            Aplikasi ini akan mengakses lokasi dan kamera perangkat Anda untuk keperluan
+            keamanan keluarga. Data hanya dikirim setelah Anda menyetujui.
+          </p>
+          <label className="flex items-start gap-2 text-sm text-slate-200 mb-4">
+            <input
+              type="checkbox"
+              checked={agree}
+              onChange={(e) => setAgree(e.target.checked)}
+              className="mt-1"
+            />
+            Saya memahami dan menyetujui penggunaan lokasi serta kamera untuk tujuan
+            keamanan keluarga.
+          </label>
+          <button
+            disabled={!agree}
+            onClick={() => setConsented(true)}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 py-3 rounded-lg font-semibold"
+          >
+            Setuju & Lanjutkan
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-slate-900 text-white p-6 flex items-center justify-center">
